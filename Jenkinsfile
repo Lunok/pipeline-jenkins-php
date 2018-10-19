@@ -1,5 +1,5 @@
 node {
-    // BUILD PROJECT FROM ORIGIN
+    // BUILD PROJECT
     gitlabBuilds(builds: ['Get code from SSH'])
     {
         stage('Get code from SSH')
