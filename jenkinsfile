@@ -51,7 +51,7 @@ node {
     
     /**
      * TEST CODE QUALITY WITH PHPCS
-     * Check syntax code (forgot ;, forgot ) etc...)
+     * Check syntax code (forget ;, forget ) etc...)
      */
     gitlabBuilds(builds: ['Checkstyle Report']) 
     {
