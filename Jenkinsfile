@@ -1,5 +1,5 @@
 node {
-    // BUILD PROJECT
+    // BUILD PROJECT FROM ORIGIN
     gitlabBuilds(builds: ['Get code from SSH'])
     {
         stage('Get code from SSH')
@@ -33,17 +33,12 @@ node {
        {
             gitlabCommitStatus(name: 'PHPLint')
             {
-                def RESULT = sh 'find src/ -name "*.php" -print0 | xargs -0 -n1 php -l'
+                def RESULT = sh returnStatus: true, script: 'vendor/bin/parallel-lint --exclude vendor --exclude  var --exclude assets --exclude docker --exclude templates --exclude node_modules --exclude src/Migrations --exclude config --exclude public --exclude autoload.php ./'
                  
                 if ( RESULT != 0 )
                 {
                     currentBuild.result = 'FAILURE'
-                    error 'Des erreurs ont été détectées pour PHPLint.'
-                }
-                else 
-                {
-                    currentBuild.result = 'SUCCESS'
-                    echo "RESULT PHPLint : ${currentBuild.result}"
+                    error 'Des erreurs ont été détectées pour PHPLint : ${RESULT}'
                 }
             }
         }
@@ -65,12 +60,7 @@ node {
                 if ( RESULT != 0 ) 
                 {
                     currentBuild.result = 'FAILURE'
-                    error 'Des erreurs ont été détectées pour PHPCS.'
-                }
-                else 
-                {
-                    currentBuild.result = 'SUCCESS'
-                    echo "RESULT PHPCS : ${currentBuild.result}"
+                    error 'Des erreurs ont été détectées pour PHPCS : ${RESULT}'
                 }
             }
         }
@@ -90,18 +80,13 @@ node {
         {
             gitlabCommitStatus(name: 'Mess detection')
             {
-                def RESULT = sh 'vendor/bin/phpmd ./ xml phpmd.xml --reportfile ./build/logs/phpmd.log.xml --exclude ./vendor, autoload.php, ./var, ./node_modules, ./templates, ./public'
+                def RESULT = sh returnStatus: true, script: 'vendor/bin/phpmd ./ xml phpmd.xml --reportfile ./build/logs/phpmd.log.xml --exclude ./vendor, autoload.php, ./var, ./node_modules, ./templates, ./public'
                 pmd canRunOnFailed: true, defaultEncoding: 'UTF-8', pattern: 'build/logs/phpmd.log.xml'
                 
                 if ( RESULT != 0 ) 
                 {
                     currentBuild.result = 'FAILURE'
-                    error 'Des erreurs ont été détectées pour PHPMD.'
-                }
-                else 
-                {
-                    currentBuild.result = 'SUCCESS'
-                    echo "RESULT PHPMD : ${currentBuild.result}"
+                    error 'Des erreurs ont été détectées pour PHPMD : ${RESULT}'
                 }
             }
         }
