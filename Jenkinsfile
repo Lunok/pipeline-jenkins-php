@@ -1,4 +1,4 @@
-// /!\ WIP PIPELINE /!\
+// /!\ PIPELINE : WIP /!\
 node {
     // BUILD PROJECT FROM ORIGIN
     gitlabBuilds(builds: ['Get code from SSH'])
