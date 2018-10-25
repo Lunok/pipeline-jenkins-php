@@ -33,12 +33,12 @@ node {
        {
             gitlabCommitStatus(name: 'PHPLint')
             {
-                def RESULT = sh returnStatus: true, script: 'vendor/bin/parallel-lint --exclude vendor --exclude  var --exclude assets --exclude docker --exclude templates --exclude node_modules --exclude src/Migrations --exclude config --exclude public --exclude autoload.php ./'
+                def resultLint = sh returnStatus: true, script: 'vendor/bin/parallel-lint --exclude vendor --exclude  var --exclude assets --exclude docker --exclude templates --exclude node_modules --exclude src/Migrations --exclude config --exclude public --exclude autoload.php ./'
                  
-                if ( RESULT != 0 )
+                if ( resultLint != 0 )
                 {
                     currentBuild.result = 'FAILURE'
-                    error 'Des erreurs ont été détectées pour PHPLint : ${RESULT}'
+                    error 'Des erreurs ont été détectées pour PHPLint : ${resultLint}'
                 }
             }
         }
@@ -54,13 +54,35 @@ node {
         {
             gitlabCommitStatus(name: 'Checkstyle Report') 
             {
-                def RESULT = sh returnStatus: true, script: 'vendor/bin/phpcs --report=checkstyle --report-file=./build/logs/phpcs.log.xml --standard=./phpcs.xml.dist --extensions=php,inc --ignore=./vendor,./var,./docker,./build,./assets,autoload.php,./public,./templates,./node_modules,./src/Migrations,./config ./'
+                def resultCs = sh returnStatus: true, script: 'vendor/bin/phpcs --report=checkstyle --report-file=./build/logs/phpcs.log.xml --standard=./phpcs.xml.dist --extensions=php,inc --ignore=./vendor,./var,./docker,./build,./assets,autoload.php,./public,./templates,./node_modules,./src/Migrations,./config ./'
                 checkstyle defaultEncoding: 'UTF-8', pattern: 'build/logs/phpcs.log.xml'
                 
-                if ( RESULT != 0 ) 
+                if ( resultCS != 0 ) 
                 {
                     currentBuild.result = 'FAILURE'
-                    error 'Des erreurs ont été détectées pour PHPCS : ${RESULT}'
+                    error 'Des erreurs ont été détectées pour PHPCS : ${resultCS}'
+                }
+            }
+        }
+    }
+    
+     /**
+     * TEST CODE QUALITY WITH PHPCPD
+     * Check code duplication
+     */
+    gitlabBuilds(builds: ['PHPCPD Report']) 
+    {
+        gitlabCommitStatus(name: 'PHPCPD Report') 
+        {
+            stage('PHPCPD Report')
+            {
+                def resultCPD = sh returnStatus: true, script: 'phpcpd --log-pmd ./build/logs/phpcpd.log.xml --exclude ./vendor,autoload.php, ./var,./node_modules,./templates,./public ./'
+                dry canRunOnFailed: true, pattern: 'build/logs/phpcpd.xml'
+                
+                if ( resultCPD != 0 ) 
+                {
+                    currentBuild.result = 'FAILURE'
+                    error 'Des erreurs ont été détectées pour PHPCPD : ${resultCPD}'
                 }
             }
         }
@@ -80,13 +102,13 @@ node {
         {
             gitlabCommitStatus(name: 'Mess detection')
             {
-                def RESULT = sh returnStatus: true, script: 'vendor/bin/phpmd ./ xml phpmd.xml --reportfile ./build/logs/phpmd.log.xml --exclude ./vendor, autoload.php, ./var, ./node_modules, ./templates, ./public'
+                def resultMD = sh returnStatus: true, script: 'vendor/bin/phpmd ./ xml phpmd.xml --reportfile ./build/logs/phpmd.log.xml --exclude ./vendor,autoload.php,./var,./node_modules,./templates,./public';
                 pmd canRunOnFailed: true, defaultEncoding: 'UTF-8', pattern: 'build/logs/phpmd.log.xml'
                 
-                if ( RESULT != 0 ) 
+                if ( resultMD != 0 ) 
                 {
                     currentBuild.result = 'FAILURE'
-                    error 'Des erreurs ont été détectées pour PHPMD : ${RESULT}'
+                    error 'Des erreurs ont été détectées pour PHPMD : ${resultMD}'
                 }
             }
         }
